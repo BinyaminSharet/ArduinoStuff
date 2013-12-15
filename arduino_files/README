@@ -1,0 +1,4 @@
+The following files should be copied to the folder $arduino_root/hardware/arduino/cores/arduino :
+HID.cpp
+USBAPI.h
+
