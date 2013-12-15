@@ -36,9 +36,11 @@ void check_encoder()
         if ( pos > old_pos )
         {
             Remote.increase();
+            Remote.clear();
         }
         else
         {
+            Remote.clear();
           Remote.decrease();
         }
         old_pos = pos;
