@@ -3,6 +3,14 @@
    This is important, all code for keyboard stuff should be inside a safe block, 
    To enable , connect pin 10 to VCC.
    To disable, connect to GND
+   
+   pins used:
+   2   rotary encoder D ( push button )
+   3   rotary encoder A
+   4   rotary encoder B
+   5   rotary encoder E ( push button )
+   GND rotary encoder C 
+   10  safty - disable - GND. enable - VCC
  */
 
 const int safety_pin = 10;
@@ -20,10 +28,14 @@ void setup() {
     digitalWrite(encoder_pin_a, HIGH);
     pinMode(encoder_pin_b, INPUT);
     digitalWrite(encoder_pin_b, HIGH);
+    pinMode(encoder_push_d, INPUT);
+    digitalWrite(encoder_push_d, HIGH);
+    pinMode(encoder_push_e, INPUT);
+    digitalWrite(encoder_push_e, HIGH);
     pinMode( safety_pin, INPUT );
     digitalWrite( safety_pin, LOW );
     attachInterrupt(0, do_encoder, FALLING); // encoder pin on interrupt 1 (pin 3)
-    attachInterrupt(1, pushed, FALLING); // encoder pin on interrupt 1 (pin 3)
+    attachInterrupt(1, pushed, FALLING); // encoder pin on interrupt 1 (pin 2)
     Serial.begin( 9600 );
 }
 
