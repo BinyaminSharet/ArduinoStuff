@@ -1,14 +1,13 @@
-
 /*
    This is important, all code for keyboard stuff should be inside a safe block, 
    To enable , connect pin 10 to VCC.
    To disable, connect to GND
-   
+
    pins used:
    2   rotary encoder D ( push button )
    3   rotary encoder A
    4   rotary encoder B
-   5   rotary encoder E ( push button )
+   GND rotary encoder E 
    GND rotary encoder C 
    10  safty - disable - GND. enable - VCC
  */
@@ -19,24 +18,34 @@ const int encoder_pin_b = 4;
 const int encoder_push_d = 2;
 const int encoder_push_e = 5;
 
+//#define USE_SERIAL  1
+#ifndef USE_SERIAL 
+#define USE_REMOTE 1
+#endif
+
 int pos, old_pos;
 volatile int encoder_pos = 0; // variables changed within interrupts are volatile
 volatile int button_pushed = 0;
 
 void setup() {
-    pinMode(encoder_pin_a, INPUT);
-    digitalWrite(encoder_pin_a, HIGH);
-    pinMode(encoder_pin_b, INPUT);
-    digitalWrite(encoder_pin_b, HIGH);
-    pinMode(encoder_push_d, INPUT);
-    digitalWrite(encoder_push_d, HIGH);
-    pinMode(encoder_push_e, INPUT);
-    digitalWrite(encoder_push_e, HIGH);
+    // set those pins as input
+    pinMode( encoder_pin_a, INPUT );
+    pinMode( encoder_pin_b, INPUT );
+    pinMode( encoder_push_d, INPUT );
     pinMode( safety_pin, INPUT );
-    digitalWrite( safety_pin, LOW );
-    attachInterrupt(0, do_encoder, FALLING); // encoder pin on interrupt 1 (pin 3)
-    attachInterrupt(1, pushed, FALLING); // encoder pin on interrupt 1 (pin 2)
+
+    // use pull-ups for all input pins
+    digitalWrite( encoder_pin_a, HIGH );
+    digitalWrite( encoder_pin_b, HIGH );
+    digitalWrite( encoder_push_d, HIGH );
+    digitalWrite( safety_pin, HIGH );
+
+    attachInterrupt( 0, encoder_handler, CHANGE ); // encoder pin on interrupt 1 (pin 3)
+    attachInterrupt( 1, pushed, FALLING ); // encoder pin on interrupt 1 (pin 2)
+
+#ifdef USE_SERIAL
     Serial.begin( 9600 );
+#endif
 }
 
 int safety()
@@ -52,13 +61,23 @@ void check_encoder()
     {
         if ( pos > old_pos )
         {
+#ifdef USE_SERIAL
+            Keyboard.write( 'u' );
+#endif
+#ifdef USE_REMOTE
             Remote.increase();
             Remote.clear();
+#endif
         }
         else
         {
+#ifdef USE_SERIAL
+            Keyboard.write( 'd' );
+#endif
+#ifdef USE_REMOTE
             Remote.decrease();
             Remote.clear();
+#endif
         }
         old_pos = pos;
     }
@@ -67,21 +86,20 @@ void check_encoder()
     if ( button_pushed )
     {
         button_pushed = 0;
+#ifdef USE_SERIAL
+        Keyboard.write( 'p' );  
+#endif
+#ifdef USE_REMOTE
         Remote.mute();
         Remote.clear();
+#endif
     }
-}
-
-void direct_write( uint8_t c)
-{
-    Keyboard.press_direct( c );
-    Keyboard.release_direct( c ); 
 }
 
 void safe_loop()
 {
     check_encoder( );
-    delay( 50 );
+    delay( 100 );
 }
 
 void loop() {
@@ -91,13 +109,23 @@ void loop() {
     }
 }
 
-// access register directly...
-void do_encoder()
+int n = LOW;
+int encoder_pin_a_last = LOW;
+void encoder_handler()
 {
-    if (digitalRead(encoder_pin_a) == digitalRead(encoder_pin_b))
-        encoder_pos--;    // count up if both encoder pins are the same
-    else
-        encoder_pos++;    // count down if pins are different
+    n = digitalRead( encoder_pin_a );
+    if ( ( encoder_pin_a_last == LOW ) && ( n == HIGH ) )
+    {
+        if ( digitalRead( encoder_pin_b ) == HIGH )
+        {
+            encoder_pos++;
+        }
+        else
+        {
+            encoder_pos--;
+        }
+    }
+    encoder_pin_a_last = n;
 }
 
 void pushed()
