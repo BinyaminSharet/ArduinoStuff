@@ -1,4 +1,10 @@
-The following files should be copied to the folder $arduino_root/hardware/arduino/cores/arduino :
-HID.cpp
-USBAPI.h
+The SAM (ARM) family needs a (slightly) different modifications in the USB core, so:
+When using arduino-1.5.5, copy the files:
+    From    To
+    avr     $arduino_root/hardware/arduino/avr/cores/arduino/
+    sam     $arduino_root/hardware/arduino/sam/cores/arduino/USB/
+
+In older versions (1.0.x):
+    From    To
+    avr     $arduino_root/hardware/arduino/cores/arduino
 

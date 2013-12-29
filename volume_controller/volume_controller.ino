@@ -12,16 +12,20 @@
    10  safty - disable - GND. enable - VCC
  */
 
+//#define USE_SERIAL  1
+#ifndef USE_SERIAL 
+#define USE_REMOTE 1
+#endif
+
+#define USE_DUE
+
 const int safety_pin = 10;
 const int encoder_pin_a = 3;
 const int encoder_pin_b = 4;
 const int encoder_push_d = 2;
 const int encoder_push_e = 5;
 
-//#define USE_SERIAL  1
-#ifndef USE_SERIAL 
-#define USE_REMOTE 1
-#endif
+
 
 int pos, old_pos;
 volatile int encoder_pos = 0; // variables changed within interrupts are volatile
@@ -40,8 +44,13 @@ void setup() {
     digitalWrite( encoder_push_d, HIGH );
     digitalWrite( safety_pin, HIGH );
 
+#ifdef USE_DUE
+    attachInterrupt( encoder_pin_a, encoder_handler, CHANGE ); // encoder pin on interrupt 1 (pin 3)
+    attachInterrupt( encoder_push_d, pushed, FALLING ); // encoder pin on interrupt 1 (pin 2)
+#else
     attachInterrupt( 0, encoder_handler, CHANGE ); // encoder pin on interrupt 1 (pin 3)
     attachInterrupt( 1, pushed, FALLING ); // encoder pin on interrupt 1 (pin 2)
+#endif
 
 #ifdef USE_SERIAL
     Serial.begin( 9600 );
