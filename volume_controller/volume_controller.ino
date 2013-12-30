@@ -19,15 +19,11 @@
 
 #define USE_DUE
 
-const int safety_pin = 10;
-const int encoder_pin_a = 3;
-const int encoder_pin_b = 4;
-const int encoder_push_d = 2;
-const int encoder_push_e = 5;
+#define safety_pin 10
+#define encoder_pin_a 3//51
+#define encoder_pin_b 4//49
+#define encoder_push_d 2//53
 
-
-
-int pos, old_pos;
 volatile int encoder_pos = 0; // variables changed within interrupts are volatile
 volatile int button_pushed = 0;
 
@@ -53,7 +49,7 @@ void setup() {
 #endif
 
 #ifdef USE_SERIAL
-    Serial.begin( 9600 );
+    Serial.begin( 115200 );
 #endif
 }
 
@@ -64,12 +60,17 @@ int safety()
 
 void check_encoder()
 {
+    int pos;
     pos = encoder_pos;
 
-    if( pos != old_pos )
+    if( pos != 0 )
     {
-        if ( pos > old_pos )
+#if USE_SERIAL
+      Serial.println( pos );
+#endif
+        if ( pos > 0 )
         {
+          --encoder_pos;
 #ifdef USE_SERIAL
             Keyboard.write( 'u' );
 #endif
@@ -80,6 +81,7 @@ void check_encoder()
         }
         else
         {
+          ++encoder_pos;
 #ifdef USE_SERIAL
             Keyboard.write( 'd' );
 #endif
@@ -88,7 +90,6 @@ void check_encoder()
             Remote.clear();
 #endif
         }
-        old_pos = pos;
     }
 
     // check and handle button press
@@ -108,7 +109,7 @@ void check_encoder()
 void safe_loop()
 {
     check_encoder( );
-    delay( 100 );
+    delay( 10 );
 }
 
 void loop() {
@@ -120,18 +121,31 @@ void loop() {
 
 int n = LOW;
 int encoder_pin_a_last = LOW;
+unsigned long last_millis = 0;
+
+int calc_rotation_speed()
+{
+    unsigned long time = millis() + 500;
+    int delta = time - last_millis;
+    if ( delta < 500 )
+    {
+      return (500 - delta) / 4;
+    }
+    return 1;
+}
 void encoder_handler()
 {
+    int rotation_speed = calc_rotation_speed();
     n = digitalRead( encoder_pin_a );
     if ( ( encoder_pin_a_last == LOW ) && ( n == HIGH ) )
     {
         if ( digitalRead( encoder_pin_b ) == HIGH )
         {
-            encoder_pos++;
+            encoder_pos += rotation_speed;
         }
         else
         {
-            encoder_pos--;
+            encoder_pos -= rotation_speed;
         }
     }
     encoder_pin_a_last = n;
