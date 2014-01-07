@@ -1,19 +1,19 @@
 
 
-/* Copyright (c) 2011, Peter Barrett  
- **  
- ** Permission to use, copy, modify, and/or distribute this software for  
- ** any purpose with or without fee is hereby granted, provided that the  
- ** above copyright notice and this permission notice appear in all copies.  
- ** 
- ** THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL  
- ** WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED  
- ** WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR  
- ** BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES  
- ** OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,  
- ** WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,  
- ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS  
- ** SOFTWARE.  
+/* Copyright (c) 2011, Peter Barrett
+ **
+ ** Permission to use, copy, modify, and/or distribute this software for
+ ** any purpose with or without fee is hereby granted, provided that the
+ ** above copyright notice and this permission notice appear in all copies.
+ **
+ ** THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL
+ ** WARRANTIES WITH REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED
+ ** WARRANTIES OF MERCHANTABILITY AND FITNESS. IN NO EVENT SHALL THE AUTHOR
+ ** BE LIABLE FOR ANY SPECIAL, DIRECT, INDIRECT, OR CONSEQUENTIAL DAMAGES
+ ** OR ANY DAMAGES WHATSOEVER RESULTING FROM LOSS OF USE, DATA OR PROFITS,
+ ** WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR OTHER TORTIOUS ACTION,
+ ** ARISING OUT OF OR IN CONNECTION WITH THE USE OR PERFORMANCE OF THIS
+ ** SOFTWARE.
  */
 
 #include "Platform.h"
@@ -173,7 +173,7 @@ const u8 _hidReportDescriptor[] = {
     0x81, 0x06,                    //	Input (Data, Variable, Relative)
 
     0x95, 0x06,                    //	Report Count (6) Number of bits remaining in byte
-    0x81, 0x07,                    //	Input (Constant, Variable, Relative) 
+    0x81, 0x07,                    //	Input (Constant, Variable, Relative)
     0xc0                           //End Collection
 
 };
@@ -255,11 +255,11 @@ Mouse_::Mouse_(void) : _buttons(0)
 {
 }
 
-void Mouse_::begin(void) 
+void Mouse_::begin(void)
 {
 }
 
-void Mouse_::end(void) 
+void Mouse_::end(void)
 {
 }
 
@@ -290,7 +290,7 @@ void Mouse_::buttons(uint8_t b)
     }
 }
 
-void Mouse_::press(uint8_t b) 
+void Mouse_::press(uint8_t b)
 {
     buttons(_buttons | b);
 }
@@ -302,7 +302,7 @@ void Mouse_::release(uint8_t b)
 
 bool Mouse_::isPressed(uint8_t b)
 {
-    if ((b & _buttons) > 0) 
+    if ((b & _buttons) > 0)
         return true;
     return false;
 }
@@ -311,15 +311,15 @@ bool Mouse_::isPressed(uint8_t b)
 //================================================================================
 //	Keyboard
 
-Keyboard_::Keyboard_(void) 
+Keyboard_::Keyboard_(void)
 {
 }
 
-void Keyboard_::begin(void) 
+void Keyboard_::begin(void)
 {
 }
 
-void Keyboard_::end(void) 
+void Keyboard_::end(void)
 {
 }
 
@@ -340,16 +340,16 @@ const uint8_t _asciimap[128] =
     0x00,             // ETX
     0x00,             // EOT
     0x00,             // ENQ
-    0x00,             // ACK  
+    0x00,             // ACK
     0x00,             // BEL
     0x2a,			// BS	Backspace
     0x2b,			// TAB	Tab
     0x28,			// LF	Enter
-    0x00,             // VT 
-    0x00,             // FF 
-    0x00,             // CR 
-    0x00,             // SO 
-    0x00,             // SI 
+    0x00,             // VT
+    0x00,             // FF
+    0x00,             // CR
+    0x00,             // SO
+    0x00,             // SI
     0x00,             // DEL
     0x00,             // DC1
     0x00,             // DC2
@@ -359,13 +359,13 @@ const uint8_t _asciimap[128] =
     0x00,             // SYN
     0x00,             // ETB
     0x00,             // CAN
-    0x00,             // EM 
+    0x00,             // EM
     0x00,             // SUB
     0x00,             // ESC
-    0x00,             // FS 
-    0x00,             // GS 
-    0x00,             // RS 
-    0x00,             // US 
+    0x00,             // FS
+    0x00,             // GS
+    0x00,             // RS
+    0x00,             // US
 
     0x2c,		   //  ' '
     0x1e|SHIFT,	   // !
@@ -458,7 +458,7 @@ const uint8_t _asciimap[128] =
     0x1b,          // x
     0x1c,          // y
     0x1d,          // z
-    0x2f|SHIFT,    // 
+    0x2f|SHIFT,    //
     0x31|SHIFT,    // |
     0x30|SHIFT,    // }
     0x35|SHIFT,    // ~
@@ -467,54 +467,12 @@ const uint8_t _asciimap[128] =
 
 uint8_t USBPutChar(uint8_t c);
 
-/* bsharet changes to support more key codes */
-size_t Keyboard_::press_direct(uint8_t k) 
-{
-    uint8_t i;
-
-    // Add k to the key report only if it's not already present
-    // and if there is an empty slot.
-    if (_keyReport.keys[0] != k && _keyReport.keys[1] != k && 
-            _keyReport.keys[2] != k && _keyReport.keys[3] != k &&
-            _keyReport.keys[4] != k && _keyReport.keys[5] != k) {
-
-        for (i=0; i<6; i++) {
-            if (_keyReport.keys[i] == 0x00) {
-                _keyReport.keys[i] = k;
-                break;
-            }
-        }
-        if (i == 6) {
-            setWriteError();
-            return 0;
-        }	
-    }
-    sendReport(&_keyReport);
-    return 1;
-}
-
-size_t Keyboard_::release_direct(uint8_t k) 
-{
-    uint8_t i;
-    // Test the key report to see if k is present.  Clear it if it exists.
-    // Check all positions in case the key is present more than once (which it shouldn't be)
-    for (i=0; i<6; i++) {
-        if (0 != k && _keyReport.keys[i] == k) {
-            _keyReport.keys[i] = 0x00;
-        }
-    }
-
-    sendReport(&_keyReport);
-    return 1;
-}
-/* bsharet changes to support more key codes - END */
-
 
 // press() adds the specified key (printing, non-printing, or modifier)
-// to the persistent key report and sends the report.  Because of the way 
-// USB HID works, the host acts like the key remains pressed until we 
+// to the persistent key report and sends the report.  Because of the way
+// USB HID works, the host acts like the key remains pressed until we
 // call release(), releaseAll(), or otherwise clear the report and resend.
-size_t Keyboard_::press(uint8_t k) 
+size_t Keyboard_::press(uint8_t k)
 {
     uint8_t i;
     if (k >= 136) {			// it's a non-printing key (not a modifier)
@@ -536,7 +494,7 @@ size_t Keyboard_::press(uint8_t k)
 
     // Add k to the key report only if it's not already present
     // and if there is an empty slot.
-    if (_keyReport.keys[0] != k && _keyReport.keys[1] != k && 
+    if (_keyReport.keys[0] != k && _keyReport.keys[1] != k &&
             _keyReport.keys[2] != k && _keyReport.keys[3] != k &&
             _keyReport.keys[4] != k && _keyReport.keys[5] != k) {
 
@@ -549,7 +507,7 @@ size_t Keyboard_::press(uint8_t k)
         if (i == 6) {
             setWriteError();
             return 0;
-        }	
+        }
     }
     sendReport(&_keyReport);
     return 1;
@@ -558,7 +516,7 @@ size_t Keyboard_::press(uint8_t k)
 // release() takes the specified key out of the persistent key report and
 // sends the report.  This tells the OS the key is no longer pressed and that
 // it shouldn't be repeated any more.
-size_t Keyboard_::release(uint8_t k) 
+size_t Keyboard_::release(uint8_t k)
 {
     uint8_t i;
     if (k >= 136) {			// it's a non-printing key (not a modifier)
@@ -592,17 +550,17 @@ size_t Keyboard_::release(uint8_t k)
 void Keyboard_::releaseAll(void)
 {
     _keyReport.keys[0] = 0;
-    _keyReport.keys[1] = 0;	
+    _keyReport.keys[1] = 0;
     _keyReport.keys[2] = 0;
-    _keyReport.keys[3] = 0;	
+    _keyReport.keys[3] = 0;
     _keyReport.keys[4] = 0;
-    _keyReport.keys[5] = 0;	
+    _keyReport.keys[5] = 0;
     _keyReport.modifiers = 0;
     sendReport(&_keyReport);
 }
 
 size_t Keyboard_::write(uint8_t c)
-{	
+{
     uint8_t p = press(c);		// Keydown
     uint8_t r = release(c);		// Keyup
     return (p);					// just return the result of press() since release() almost always returns 1
@@ -613,11 +571,11 @@ Remote_::Remote_(void)
 {
 }
 
-void Remote_::begin(void) 
+void Remote_::begin(void)
 {
 }
 
-void Remote_::end(void) 
+void Remote_::end(void)
 {
 }
 
