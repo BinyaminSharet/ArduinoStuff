@@ -17,7 +17,7 @@
 #define USE_REMOTE 1
 #endif
 
-#define USE_DUE
+//#define USE_DUE
 
 #define safety_pin 10
 #define encoder_pin_a 3//51
@@ -137,6 +137,7 @@ void encoder_handler()
 {
     int rotation_speed = calc_rotation_speed();
     n = digitalRead( encoder_pin_a );
+    rotation_speed = 1;
     if ( ( encoder_pin_a_last == LOW ) && ( n == HIGH ) )
     {
         if ( digitalRead( encoder_pin_b ) == HIGH )
